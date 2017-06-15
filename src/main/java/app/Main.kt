@@ -9,16 +9,10 @@ import bot.GrabStockQuoteBot
 
 fun main(args: Array<String>) {
 
-	val stockQuote: StockQuote;
-	val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
-
-	stockQuote = stockQuoteService.getStockQuote("DIGI");
-
-	println(if (stockQuote.ticker != "") stockQuote.ticker else "No data")
-
 	ApiContextInitializer.init();
 	val botsApi: TelegramBotsApi = TelegramBotsApi();
 	botsApi.registerBot(GrabStockQuoteBot());
+	println("GrabStockQuoteBot now started...")
 
 }
 
