@@ -8,12 +8,10 @@ import service.impl.StockQuoteServiceImpl
 import bot.GrabStockQuoteBot
 
 fun main(args: Array<String>) {
-
 	ApiContextInitializer.init();
 	val botsApi: TelegramBotsApi = TelegramBotsApi();
 	botsApi.registerBot(GrabStockQuoteBot());
 	println("GrabStockQuoteBot now started...")
-
 }
 
 

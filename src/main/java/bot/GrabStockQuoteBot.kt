@@ -10,28 +10,22 @@ import service.impl.StockQuoteServiceImpl
 class GrabStockQuoteBot : TelegramLongPollingBot() {
 	
 	fun getUpDownSymbol(price: String) : String {
-		
 		if(price.indexOf("-") > -1) {
 			return "↓"
 		}
-		
 		if(price.indexOf("+") > -1) {
 			return "↑"
 		}
-		
 		if(price.equals("0.00")) {
 			return ""
 		}
-		
 		if(price.equals("0.0000")) {
 			return ""
 		}
-		
 		return "↑"
 	}
 
 	override fun onUpdateReceived(update: Update?) {
-
 		val stockQuote: StockQuote;
 		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
 		var replyMsg: String
@@ -65,7 +59,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 			// Call method to send the message
 			sendMessage(message);
-
 		}
 	}
 
@@ -74,6 +67,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 	}
 
 	override fun getBotToken(): String? {
-		return "436951744:AAFfRktcl2OnCX6NvP4l3ibdEeVBt8LTaI8"
+		return System.getenv("TELEGRAM_TOKEN")
 	}
 }
