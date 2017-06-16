@@ -40,14 +40,19 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				"/start" -> replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE ticket symbol name to get the latest stock price.\n\nExample: digi"
 				else -> {
 					stockQuote = stockQuoteService.getStockQuote(update.getMessage().getText());
-					if (stockQuote.ticker == "") {
+					if (stockQuote.ticker == ""
+							|| stockQuote.lastPrice == ""
+							|| stockQuote.previousClosePrice == ""
+							|| stockQuote.change == ""
+							|| stockQuote.changePercentage == "") {
 						replyMsg = notFoundMsg;
+						
 					} else {
-						replyMsg = stockQuote.exchange.toUpperCase() + ":" + stockQuote.ticker.toUpperCase()
-						replyMsg += "\n\nLast trade ➔ MYR " + stockQuote.lastPrice
-						replyMsg += "\n\nPrev close ➔ MYR " + stockQuote.previousClosePrice
-						replyMsg += "\n\nChange ➔ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
-						replyMsg += "\n\nPercentage ➔ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage) 
+						replyMsg = "📌 " + stockQuote.exchange.toUpperCase() + ": " + stockQuote.ticker.toUpperCase()
+						replyMsg += "\n\n🔸 Last trade ➔ MYR " + stockQuote.lastPrice
+						replyMsg += "\n\n🔸 Prev close ➔ MYR " + stockQuote.previousClosePrice
+						replyMsg += "\n\n🔸 Change ➔ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
+						replyMsg += "\n\n🔸 Percentage ➔ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage) 
 					}
 				}
 			}
