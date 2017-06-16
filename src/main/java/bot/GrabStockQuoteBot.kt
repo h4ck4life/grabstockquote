@@ -8,18 +8,18 @@ import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
 
 class GrabStockQuoteBot : TelegramLongPollingBot() {
-	
-	fun getUpDownSymbol(price: String) : String {
-		if(price.indexOf("-") > -1) {
+
+	fun getUpDownSymbol(price: String): String {
+		if (price.indexOf("-") > -1) {
 			return "↓"
 		}
-		if(price.indexOf("+") > -1) {
+		if (price.indexOf("+") > -1) {
 			return "↑"
 		}
-		if(price.equals("0.00")) {
+		if (price.equals("0.00")) {
 			return ""
 		}
-		if(price.equals("0.0000")) {
+		if (price.equals("0.0000")) {
 			return ""
 		}
 		return "↑"
@@ -37,7 +37,24 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			val responseMsg = update.message.getText()
 
 			when (responseMsg) {
-				"/start" -> replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE ticket symbol name to get the latest stock price.\n\nExample: digi"
+				"/start" -> {
+					replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE ticket symbol name to get the latest stock price.\n\nExample: digi"
+				}
+				"/top" -> {
+					replyMsg = "🔵 KLSE Top Gainers\n\n"
+					val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
+					for ((index, element) in stockTopGainersList.withIndex()) {
+						replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+					}
+				}
+				"/losers" -> {
+					replyMsg = "🔴 KLSE Top Losers\n\n"
+					val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
+					for ((index, element) in stockTopLosersList.withIndex()) {
+						replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+					}
+
+				}
 				else -> {
 					stockQuote = stockQuoteService.getStockQuote(update.getMessage().getText());
 					if (stockQuote.ticker == ""
@@ -46,13 +63,13 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 							|| stockQuote.change == ""
 							|| stockQuote.changePercentage == "") {
 						replyMsg = notFoundMsg;
-						
+
 					} else {
 						replyMsg = "📌 " + stockQuote.exchange.toUpperCase() + ": " + stockQuote.ticker.toUpperCase()
-						replyMsg += "\n\n🔸 Last trade ➔ MYR " + stockQuote.lastPrice
-						replyMsg += "\n\n🔸 Prev close ➔ MYR " + stockQuote.previousClosePrice
-						replyMsg += "\n\n🔸 Change ➔ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
-						replyMsg += "\n\n🔸 Percentage ➔ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage) 
+						replyMsg += "\n\n🔸 Last trade ➞ MYR " + stockQuote.lastPrice
+						replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
+						replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
+						replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 					}
 				}
 			}
