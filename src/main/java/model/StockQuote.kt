@@ -36,22 +36,22 @@ data class StockQuote(
 		val exchange: String = "",
 
 		@JsonProperty("l")
-		val price: String = "",
+		val lastPrice: String = "",
 
 		@JsonProperty("l_fix")
-		val l_fix: String = "",
+		val lastFixPrice: String = "",
 
 		@JsonProperty("l_cur")
-		val l_cur: String = "",
+		val lastTradeWithCurrency: String = "",
 
 		@JsonProperty("s")
-		val s: String = "",
+		val lastTradeSize: String = "",
 
 		@JsonProperty("ltt")
 		val lastTradeTime: String = "",
 
 		@JsonProperty("lt")
-		val lastTradeTimeFormatted: String = "",
+		val lastTradeDateTimeLong: String = "",
 
 		@JsonProperty("lt_dts")
 		val lastTradeDateTime: String = "",
@@ -66,12 +66,12 @@ data class StockQuote(
 		val changePercentage: String = "",
 
 		@JsonProperty("cp_fix")
-		val cp_fix: String = "",
+		val changePercentageFix: String = "",
 
 		@JsonProperty("ccol")
 		val ccol: String = "",
 
 		@JsonProperty("pcls_fix")
-		val pcls_fix: String = ""
+		val previousClosePrice: String = ""
 
 );
