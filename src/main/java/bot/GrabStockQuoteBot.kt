@@ -77,12 +77,14 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
+					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase(), update) else "")
 				} else {
 					inlineQueryResult.setTitle("No result")
 					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
+					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
 				}
 
-				inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") inlineResponseMsg.query.toUpperCase() else "")
+				
 				inlineQueryResult.setThumbUrl("http://rhbtradesmart.com/uploads/home/bursa-logo.png")
 				inlineQueryResult.setId(inlineResponseMsg.id)
 				inlineQueryResult.setInputMessageContent(inputMessageContent)
