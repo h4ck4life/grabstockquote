@@ -6,6 +6,10 @@ import org.telegram.telegrambots.api.objects.Update
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
+import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery
+import org.telegram.telegrambots.api.methods.AnswerInlineQuery
+import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle
+import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent
 
 class GrabStockQuoteBot : TelegramLongPollingBot() {
 
@@ -25,11 +29,70 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 		return "↑"
 	}
 
+	fun getStockReply(ticker: String, update: Update?): String {
+
+		var replyMsg: String
+		val notFoundMsg: String = "Please type in valid KLSE stock symbol."
+		val stockQuote: StockQuote;
+		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
+
+		stockQuote = stockQuoteService.getStockQuote(ticker);
+		if (stockQuote.ticker == ""
+				|| stockQuote.lastPrice == ""
+				|| stockQuote.previousClosePrice == ""
+				|| stockQuote.change == ""
+				|| stockQuote.changePercentage == "") {
+			replyMsg = notFoundMsg;
+
+		} else {
+			replyMsg = "📌 " + stockQuote.exchange.toUpperCase() + ": " + stockQuote.ticker.toUpperCase()
+			replyMsg += "\n\n🔸 Last trade ➞ MYR " + stockQuote.lastPrice
+			replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
+			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
+			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
+		}
+
+		return replyMsg
+	}
+
 	override fun onUpdateReceived(update: Update?) {
+
+		val inlineResponseMsg: InlineQuery
+		val answerInlineQuery = AnswerInlineQuery()
 		val stockQuote: StockQuote;
 		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
 		var replyMsg: String
-		val notFoundMsg: String = "Not found. Please type in valid KLSE stock symbol."
+		val notFoundMsg: String = "Please type in valid KLSE stock symbol."
+
+		if (update!!.hasInlineQuery()) {
+
+			inlineResponseMsg = update.inlineQuery
+			
+			if (!inlineResponseMsg.query.equals("")) {
+
+				var inlineQueryResult = InlineQueryResultArticle()
+				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
+				val inputMessageContent = InputTextMessageContent();
+
+				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
+					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
+					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
+				} else {
+					inlineQueryResult.setTitle("No result")
+					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
+				}
+
+				inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") inlineResponseMsg.query.toUpperCase() else "")
+				inlineQueryResult.setThumbUrl("http://rhbtradesmart.com/uploads/home/bursa-logo.png")
+				inlineQueryResult.setId(inlineResponseMsg.id)
+				inlineQueryResult.setInputMessageContent(inputMessageContent)
+
+				answerInlineQuery.setResults(inlineQueryResult)
+				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
+				answerInlineQuery(answerInlineQuery)
+
+			}
+		}
 
 		// We check if the update has a message and the message has text
 		if (update!!.hasMessage() && update.getMessage().hasText()) {
@@ -56,21 +119,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 				}
 				else -> {
-					stockQuote = stockQuoteService.getStockQuote(update.getMessage().getText());
-					if (stockQuote.ticker == ""
-							|| stockQuote.lastPrice == ""
-							|| stockQuote.previousClosePrice == ""
-							|| stockQuote.change == ""
-							|| stockQuote.changePercentage == "") {
-						replyMsg = notFoundMsg;
-
-					} else {
-						replyMsg = "📌 " + stockQuote.exchange.toUpperCase() + ": " + stockQuote.ticker.toUpperCase()
-						replyMsg += "\n\n🔸 Last trade ➞ MYR " + stockQuote.lastPrice
-						replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
-						replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
-						replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
-					}
+					replyMsg = getStockReply(update.getMessage().getText(), update)
 				}
 			}
 
