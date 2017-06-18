@@ -103,7 +103,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 			when (responseMsg) {
 				"/start" -> {
-					replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE ticket symbol name to get the latest stock price.\n\nExample: digi"
+					replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE symbol name to get the latest stock price information.\n\nExample: digi"
 				}
 				"/top" -> {
 					replyMsg = "🔵 KLSE Top Gainers\n\n"
