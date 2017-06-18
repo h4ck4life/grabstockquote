@@ -7,7 +7,8 @@
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} -
+				%msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -23,7 +24,8 @@
 
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily -->
-			<fileNamePattern>${DEV_HOME}/archived/debug-${APP_NAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<fileNamePattern>${DEV_HOME}/archived/debug-${APP_NAME}.%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy
 				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>50MB</maxFileSize>
@@ -41,7 +43,8 @@
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily -->
-			<fileNamePattern>${DEV_HOME}/archived/error-${APP_NAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<fileNamePattern>${DEV_HOME}/archived/error-${APP_NAME}.%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy
 				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>50MB</maxFileSize>
@@ -50,7 +53,8 @@
 	</appender>
 
 	<!-- Send logs to both console and file audit -->
-	<logger name="com.filavents.grabstockquote" level="debug" additivity="false">
+	<logger name="com.filavents.grabstockquote" level="debug"
+		additivity="false">
 		<appender-ref ref="FILE-AUDIT" />
 		<appender-ref ref="STDOUT" />
 	</logger>
@@ -59,5 +63,5 @@
 		<appender-ref ref="FILE-ERROR" />
 	</root>
 
-	
+
 </configuration>
