@@ -1,17 +1,23 @@
 package bot
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import model.StockQuote
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.telegram.telegrambots.api.methods.AnswerInlineQuery
 import org.telegram.telegrambots.api.methods.send.SendMessage
 import org.telegram.telegrambots.api.objects.Update
+import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery
+import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent
+import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
-import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery
-import org.telegram.telegrambots.api.methods.AnswerInlineQuery
-import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle
-import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent
 
 class GrabStockQuoteBot : TelegramLongPollingBot() {
+
+	val LOG: Logger = LoggerFactory.getLogger("com.filavents.grabstockquote")
+	val mapper = jacksonObjectMapper()
 
 	fun getUpDownSymbol(price: String): String {
 		if (price.indexOf("-") > -1) {
@@ -29,7 +35,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 		return "↑"
 	}
 
-	fun getStockReply(ticker: String, update: Update?): String {
+	fun getStockReply(ticker: String, update: Update): String {
 
 		var replyMsg: String
 		val notFoundMsg: String = "Please type in valid KLSE stock symbol."
@@ -52,6 +58,11 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 		}
 
+		val logObject = mapper.createObjectNode();
+		logObject.put("chatId", update.updateId)
+		logObject.put("replyMsg", replyMsg)
+		LOG.debug(logObject.toString())
+
 		return replyMsg
 	}
 
@@ -59,16 +70,19 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 		val inlineResponseMsg: InlineQuery
 		val answerInlineQuery = AnswerInlineQuery()
-		val stockQuote: StockQuote;
 		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
 		var replyMsg: String
-		val notFoundMsg: String = "Please type in valid KLSE stock symbol."
 
 		if (update!!.hasInlineQuery()) {
 
 			inlineResponseMsg = update.inlineQuery
-			
+
 			if (!inlineResponseMsg.query.equals("")) {
+
+				val logObject = mapper.createObjectNode();
+				logObject.put("chatId", update.updateId)
+				logObject.put("inputMsg", inlineResponseMsg.query)
+				LOG.debug(logObject.toString())
 
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
@@ -84,7 +98,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
 				}
 
-				
+
 				inlineQueryResult.setThumbUrl("http://rhbtradesmart.com/uploads/home/bursa-logo.png")
 				inlineQueryResult.setId(inlineResponseMsg.id)
 				inlineQueryResult.setInputMessageContent(inputMessageContent)
@@ -100,6 +114,11 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 		if (update!!.hasMessage() && update.getMessage().hasText()) {
 
 			val responseMsg = update.message.getText()
+
+			val logObject = mapper.createObjectNode();
+			logObject.put("chatId", update.updateId)
+			logObject.put("inputMsg", responseMsg)
+			LOG.debug(logObject.toString())
 
 			when (responseMsg) {
 				"/start" -> {
