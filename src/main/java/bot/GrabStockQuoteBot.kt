@@ -1,6 +1,9 @@
 package bot
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.salomonbrys.kodein.Kodein
+import com.github.salomonbrys.kodein.bind
+import com.github.salomonbrys.kodein.provider
 import model.StockQuote
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,6 +22,11 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 	val LOG: Logger = LoggerFactory.getLogger("com.filavents.grabstockquote")
 	val mapper = jacksonObjectMapper()
 
+	// Dependency injection
+	val kodein = Kodein {
+		bind<StockQuoteService>() with provider { StockQuoteServiceImpl() }
+	}
+
 	fun getUpDownSymbol(price: String): String {
 		if (price.indexOf("-") > -1) {
 			return "↓"
@@ -35,12 +43,12 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 		return "↑"
 	}
 
-	fun getStockReply(ticker: String, update: Update): String {
+	fun getStockReply(ticker: String): String {
 
 		var replyMsg: String
-		val notFoundMsg: String = "Please type in valid KLSE stock symbol."
+		val notFoundMsg: String = "'${ticker.toUpperCase()}' is invalid KLSE stock symbol."
 		val stockQuote: StockQuote;
-		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
+		val stockQuoteService = kodein.provider<StockQuoteService>().invoke()
 
 		stockQuote = stockQuoteService.getStockQuote(ticker);
 		if (stockQuote.ticker == ""
@@ -58,11 +66,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 		}
 
-		val logObject = mapper.createObjectNode();
-		logObject.put("chatId", update.updateId)
-		logObject.put("replyMsg", replyMsg)
-		LOG.debug(logObject.toString())
-
 		return replyMsg
 	}
 
@@ -70,7 +73,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 		val inlineResponseMsg: InlineQuery
 		val answerInlineQuery = AnswerInlineQuery()
-		val stockQuoteService: StockQuoteService = StockQuoteServiceImpl();
+		val stockQuoteService: StockQuoteService = kodein.provider<StockQuoteService>().invoke()
 		var replyMsg: String
 
 		if (update!!.hasInlineQuery()) {
@@ -79,10 +82,10 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 			if (!inlineResponseMsg.query.equals("")) {
 
-				val logObject = mapper.createObjectNode();
-				logObject.put("chatId", update.updateId)
-				logObject.put("inputMsg", inlineResponseMsg.query)
-				LOG.debug(logObject.toString())
+				val logReqObject = mapper.createObjectNode();
+				logReqObject.put("chatId", update.updateId)
+				logReqObject.put("inputMsg", inlineResponseMsg.query)
+				LOG.debug(logReqObject.toString())
 
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
@@ -91,13 +94,12 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
-					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase(), update) else "")
+					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase()) else "")
 				} else {
 					inlineQueryResult.setTitle("No result")
 					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
 					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
 				}
-
 
 				inlineQueryResult.setThumbUrl("http://rhbtradesmart.com/uploads/home/bursa-logo.png")
 				inlineQueryResult.setId(inlineResponseMsg.id)
@@ -107,6 +109,10 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
 
+				val logRespObject = mapper.createObjectNode()
+				logRespObject.put("chatId", update.updateId)
+				logRespObject.put("replyMsg", answerInlineQuery.toString())
+				LOG.debug(logRespObject.toString())
 			}
 		}
 
@@ -115,42 +121,61 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 			val responseMsg = update.message.getText()
 
-			val logObject = mapper.createObjectNode();
-			logObject.put("chatId", update.updateId)
-			logObject.put("inputMsg", responseMsg)
-			LOG.debug(logObject.toString())
-
-			when (responseMsg) {
-				"/start" -> {
-					replyMsg = "Hello! Good day buddy :-)\n\nType in KLSE symbol name to get the latest stock price information.\n\nExample: digi"
-				}
-				"/top" -> {
-					replyMsg = "🔵 KLSE Top Gainers\n\n"
-					val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
-					for ((index, element) in stockTopGainersList.withIndex()) {
-						replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+			val queryCmd = responseMsg.trim().split(" ")
+			if (queryCmd.size > 0) {
+				queryCmd.mapIndexed { idx, value ->
+					if (idx > 2) {
+						return;
 					}
-				}
-				"/losers" -> {
-					replyMsg = "🔴 KLSE Top Losers\n\n"
-					val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
-					for ((index, element) in stockTopLosersList.withIndex()) {
-						replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+					val logReqObject = mapper.createObjectNode()
+					logReqObject.put("chatId", update.updateId)
+					logReqObject.put("inputMsg", value)
+					LOG.debug(logReqObject.toString())
+
+					when (value) {
+						"/start" -> {
+							replyMsg = """
+					Hello! Good day buddy :-)
+ 
+Type in KLSE symbol name to get the latest stock price information.
+ 
+ Example: digi
+ 					"""
+						}
+						"/top" -> {
+							replyMsg = "🔵 KLSE Top Gainers\n\n"
+							val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
+							for ((index, element) in stockTopGainersList.withIndex()) {
+								replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+							}
+						}
+						"/losers" -> {
+							replyMsg = "🔴 KLSE Top Losers\n\n"
+							val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
+							for ((index, element) in stockTopLosersList.withIndex()) {
+								replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+							}
+
+						}
+						else -> {
+							replyMsg = getStockReply(value)
+						}
 					}
 
-				}
-				else -> {
-					replyMsg = getStockReply(update.getMessage().getText(), update)
+					val logRespObject = mapper.createObjectNode()
+					logRespObject.put("chatId", update.updateId)
+					logRespObject.put("replyMsg", replyMsg)
+					LOG.debug(logRespObject.toString())
+
+					// Create a SendMessage object with mandatory fields
+					val message = SendMessage()
+							.setChatId(update.message.getChatId())
+							.setText(replyMsg);
+
+					// Call method to send the message
+					sendMessage(message)
 				}
 			}
-
-			// Create a SendMessage object with mandatory fields
-			val message = SendMessage()
-					.setChatId(update.message.getChatId())
-					.setText(replyMsg);
-
-			// Call method to send the message
-			sendMessage(message);
 		}
 	}
 

@@ -3,11 +3,19 @@ import org.junit.Assert
 import org.junit.Test
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
+import com.github.salomonbrys.kodein.Kodein
+import com.github.salomonbrys.kodein.bind
+import com.github.salomonbrys.kodein.provider
 
 class StockQuoteServiceTest {
+	
+	// Dependency injection
+	val kodein = Kodein {
+		bind<StockQuoteService>() with provider { StockQuoteServiceImpl() }
+	}
 
 	val tickerExpected = "Digi"
-	val stockQuoteService: StockQuoteService = StockQuoteServiceImpl()
+	val stockQuoteService = kodein.provider<StockQuoteService>().invoke()
 	val stockQuote = stockQuoteService.getStockQuote(tickerExpected)
 
 	@Test
