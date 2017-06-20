@@ -111,7 +111,7 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 		}
 
 		// We check if the update has a message and the message has text
-		if (update!!.hasMessage() && update.getMessage().hasText()) {
+		if (update.hasMessage() && update.getMessage().hasText()) {
 
 			val responseMsg = update.message.getText()
 

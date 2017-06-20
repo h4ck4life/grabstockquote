@@ -6,28 +6,28 @@ import service.impl.StockQuoteServiceImpl
 
 class StockQuoteServiceTest {
 
-	val ticker = "Digi"
+	val tickerExpected = "Digi"
 	val stockQuoteService: StockQuoteService = StockQuoteServiceImpl()
-	val stockQuote = stockQuoteService.getStockQuote(ticker)
+	val stockQuote = stockQuoteService.getStockQuote(tickerExpected)
 
 	@Test
-	fun getStockQuoteNotNull() {
+	fun getStockQuoteNotNullTest() {
 		Assert.assertNotNull(stockQuote)
 	}
 	
 	@Test
-	fun getStockQuoteTickerEqualsTo() {
-		Assert.assertEquals(stockQuote.ticker, ticker.toUpperCase())
+	fun getStockQuoteTickerEqualsTest() {
+		Assert.assertEquals(stockQuote.ticker, "DIGI")
 	}
 	
 	@Test
-	fun getTopGainersList() {
+	fun getTopGainersListTest() {
 		val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
 		Assert.assertNotNull(stockTopGainersList);
 	}
 	
 	@Test
-	fun getTopLosersList() {
+	fun getTopLosersListTest() {
 		val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
 		Assert.assertNotNull(stockTopLosersList);
 	}
