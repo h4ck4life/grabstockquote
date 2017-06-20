@@ -82,11 +82,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 
 			if (!inlineResponseMsg.query.equals("")) {
 
-				val logReqObject = mapper.createObjectNode();
-				logReqObject.put("chatId", update.updateId)
-				logReqObject.put("inputMsg", inlineResponseMsg.query)
-				LOG.debug(logReqObject.toString())
-
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
 				val inputMessageContent = InputTextMessageContent();
@@ -109,10 +104,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
 
-				val logRespObject = mapper.createObjectNode()
-				logRespObject.put("chatId", update.updateId)
-				logRespObject.put("replyMsg", answerInlineQuery.toString())
-				LOG.debug(logRespObject.toString())
 			}
 		}
 
