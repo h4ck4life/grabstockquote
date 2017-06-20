@@ -137,9 +137,13 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 							replyMsg = """
 					Hello! Good day buddy :-)
  
-Type in KLSE symbol name to get the latest stock price information.
+Type in KLSE symbol name to get the latest stock price information,
  
- Example: digi
+Example: digi
+ 
+Get multiple results (max 3),
+ 
+Example: digi maxis astro 
  					"""
 						}
 						"/top" -> {
