@@ -44,7 +44,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 	}
 
 	fun getStockReply(ticker: String): String {
-
 		var replyMsg: String
 		val notFoundMsg: String = "'${ticker.toUpperCase()}' is invalid KLSE stock symbol."
 		val stockQuote: StockQuote;
@@ -65,12 +64,10 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 		}
-
 		return replyMsg
 	}
 
 	override fun onUpdateReceived(update: Update?) {
-
 		val inlineResponseMsg: InlineQuery
 		val answerInlineQuery = AnswerInlineQuery()
 		val stockQuoteService: StockQuoteService = kodein.provider<StockQuoteService>().invoke()
@@ -81,7 +78,6 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			inlineResponseMsg = update.inlineQuery
 
 			if (!inlineResponseMsg.query.equals("")) {
-
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
 				val inputMessageContent = InputTextMessageContent();
@@ -103,15 +99,12 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				answerInlineQuery.setResults(inlineQueryResult)
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
-
 			}
 		}
 
 		// We check if the update has a message and the message has text
 		if (update.hasMessage() && update.getMessage().hasText()) {
-
 			val responseMsg = update.message.getText()
-
 			val queryCmd = responseMsg.trim().split(" ")
 			if (queryCmd.size > 0) {
 				queryCmd.mapIndexed { idx, value ->

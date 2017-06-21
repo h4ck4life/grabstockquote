@@ -25,7 +25,6 @@ yld		Dividend Yield
  */
 
 data class StockQuote(
-
 		@JsonProperty("id")
 		val id: String = "",
 
@@ -73,5 +72,4 @@ data class StockQuote(
 
 		@JsonProperty("pcls_fix")
 		val previousClosePrice: String = ""
-
 );

@@ -14,38 +14,31 @@ import org.jsoup.select.Elements
 class StockQuoteServiceImpl : StockQuoteService {
 
 	override fun getTopLosersList(): MutableList<StockQuote> {
-
 		var stockQuoteList: MutableList<StockQuote> = mutableListOf()
 
 		val doc: Document = Jsoup.connect("http://www.malaysiastock.biz/Market-Watch.aspx")
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36")
 				.get()
-
 		val el: Elements = doc.select("#MainContent_tbTopLosers > tbody > tr:nth-child(n+2)")
 
 		// Get ticket
 		el.map {
-
 			var stockQuote: StockQuote = StockQuote(
 					ticker = it.select("td:nth-child(1)").text(),
 					lastPrice = it.select("td:nth-child(2)").text(),
 					change = it.select("td:nth-child(3)").text()
 			)
-
 			stockQuoteList.add(stockQuote)
 		}
-
 		return stockQuoteList;
 	}
 
 	override fun getTopGainersList(): MutableList<StockQuote> {
-
 		var stockQuoteList: MutableList<StockQuote> = mutableListOf()
 
 		val doc: Document = Jsoup.connect("http://www.malaysiastock.biz/Market-Watch.aspx")
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36")
 				.get()
-
 		val el: Elements = doc.select("#MainContent_tbTopGainers > tbody > tr:nth-child(n+2)")
 
 		// Get ticket
@@ -78,6 +71,4 @@ class StockQuoteServiceImpl : StockQuoteService {
 
 		return state.get(0)
 	}
-
-
 }
