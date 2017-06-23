@@ -30,6 +30,15 @@ class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot()
 		bind<StockQuoteService>() with provider { StockQuoteServiceImpl() }
 	}
 
+	fun saveStockIntoDb(stockQuote: StockQuote) {
+		try {
+			val doc: Document = Document("stockquote", stockQuote)
+			mongoDatabase.getCollection("StockQuote").insertOne(doc)
+		} catch (e: Exception) {
+			LOG.error("Mongodb error for ${stockQuote.ticker}: " + e.message)
+		}
+	}
+
 	fun getUpDownSymbol(price: String): String {
 		if (price.indexOf("-") > -1) {
 			return "↓"
@@ -67,9 +76,7 @@ class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot()
 			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 
-			// Save to db
-			val doc: Document = Document("stockquote", stockQuote)
-			mongoDatabase.getCollection("StockQuote").insertOne(doc)
+			saveStockIntoDb(stockQuote)
 		}
 		return replyMsg
 	}
@@ -107,9 +114,7 @@ class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot()
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
 
-				// Save to db
-				val doc: Document = Document("stockquote", stockQuote)
-				mongoDatabase.getCollection("StockQuote").insertOne(doc)
+				saveStockIntoDb(stockQuote)
 
 			}
 		}
