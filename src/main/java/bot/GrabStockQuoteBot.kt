@@ -16,11 +16,14 @@ import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResul
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
+import com.mongodb.client.MongoDatabase
+import org.bson.Document
 
-class GrabStockQuoteBot : TelegramLongPollingBot() {
+class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot() {
 
 	val LOG: Logger = LoggerFactory.getLogger("com.filavents.grabstockquote")
 	val mapper = jacksonObjectMapper()
+	val mongoDatabase = mongoDatabase
 
 	// Dependency injection
 	val kodein = Kodein {
@@ -63,6 +66,10 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 			replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
 			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
+
+			// Save to db
+			val doc: Document = Document("stockquote", stockQuote)
+			mongoDatabase.getCollection("StockQuote").insertOne(doc)
 		}
 		return replyMsg
 	}
@@ -99,6 +106,11 @@ class GrabStockQuoteBot : TelegramLongPollingBot() {
 				answerInlineQuery.setResults(inlineQueryResult)
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
+
+				// Save to db
+				val doc: Document = Document("stockquote", stockQuote)
+				mongoDatabase.getCollection("StockQuote").insertOne(doc)
+
 			}
 		}
 
