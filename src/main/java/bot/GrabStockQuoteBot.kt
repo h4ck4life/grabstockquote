@@ -32,8 +32,7 @@ class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot()
 
 	fun saveStockIntoDb(stockQuote: StockQuote) {
 		try {
-			val doc: Document = Document("stockquote", stockQuote)
-			mongoDatabase.getCollection("StockQuote").insertOne(doc)
+			mongoDatabase.getCollection("stockquote", StockQuote::class.java).insertOne(stockQuote)
 		} catch (e: Exception) {
 			LOG.error("Mongodb error for ${stockQuote.ticker}: " + e.message)
 		}
