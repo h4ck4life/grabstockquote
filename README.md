@@ -1,5 +1,5 @@
 # What is this?
-[GrabStockQuoteBot](http://t.me/GrabStockQuoteBot) is a Telegram bot that is able to get instant KLSE stock price information.
+[![Build Status](https://travis-ci.org/h4ck4life/grabstockquote.svg?branch=master)](https://travis-ci.org/h4ck4life/grabstockquote) [GrabStockQuoteBot](http://t.me/GrabStockQuoteBot) is a Telegram bot that is able to get instant KLSE stock price information.
 
 ![GrabStockQuote Screen 1](https://github.com/h4ck4life/grabstockquote/blob/master/screenshots/2017-06-24_00-37-37.gif?raw=true)
 
