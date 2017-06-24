@@ -23,7 +23,7 @@ class StockQuoteServiceImpl : StockQuoteService {
 
 		// Get ticket
 		el.map {
-			var stockQuote: StockQuote = StockQuote(
+			var stockQuote = StockQuote(
 					ticker = it.select("td:nth-child(1)").text(),
 					lastPrice = it.select("td:nth-child(2)").text(),
 					change = it.select("td:nth-child(3)").text()
@@ -67,7 +67,7 @@ class StockQuoteServiceImpl : StockQuoteService {
 		}
 
 		val mapper = jacksonObjectMapper()
-		val state: List<StockQuote> = mapper.readValue(jsonResponse.body.substring(4))
+		var state: List<StockQuote> = mapper.readValue(jsonResponse.body.substring(4))
 
 		return state.get(0)
 	}

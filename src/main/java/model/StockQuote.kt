@@ -25,8 +25,8 @@ yld		Dividend Yield
  */
 
 data class StockQuote(
-		@JsonProperty("id")
-		val id: String = "",
+		/*@JsonProperty("id")
+		val id: String = "",*/
 
 		@JsonProperty("t")
 		val ticker: String = "",

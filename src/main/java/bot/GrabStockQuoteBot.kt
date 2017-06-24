@@ -19,11 +19,10 @@ import service.impl.StockQuoteServiceImpl
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 
-class GrabStockQuoteBot(mongoDatabase: MongoDatabase) : TelegramLongPollingBot() {
+class GrabStockQuoteBot(val mongoDatabase: MongoDatabase) : TelegramLongPollingBot() {
 
 	val LOG: Logger = LoggerFactory.getLogger("com.filavents.grabstockquote")
 	val mapper = jacksonObjectMapper()
-	val mongoDatabase = mongoDatabase
 
 	// Dependency injection
 	val kodein = Kodein {
