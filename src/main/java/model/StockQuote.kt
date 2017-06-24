@@ -1,5 +1,6 @@
 package model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
@@ -24,7 +25,9 @@ yld		Dividend Yield
 
  */
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class StockQuote(
+		
 		/*@JsonProperty("id")
 		val id: String = "",*/
 
