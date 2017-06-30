@@ -4,7 +4,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.bind
 import com.github.salomonbrys.kodein.provider
+import com.mongodb.client.MongoDatabase
 import model.StockQuote
+import org.ehcache.Cache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.api.methods.AnswerInlineQuery
@@ -16,10 +18,8 @@ import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResul
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
-import com.mongodb.client.MongoDatabase
-import org.bson.Document
 
-class GrabStockQuoteBot(val mongoDatabase: MongoDatabase) : TelegramLongPollingBot() {
+class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<String, String>) : TelegramLongPollingBot() {
 
 	val LOG: Logger = LoggerFactory.getLogger("com.filavents.grabstockquote")
 	val mapper = jacksonObjectMapper()
@@ -73,6 +73,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase) : TelegramLongPollingB
 			replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
 			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
+			replyMsg += "\n\n" + stockQuote.lastTradeDateTimeLong
 
 			saveStockIntoDb(stockQuote)
 		}
@@ -146,19 +147,30 @@ Example: digi maxis astro
  					"""
 						}
 						"/top" -> {
-							replyMsg = "🔵 KLSE Top Gainers\n\n"
-							val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
-							for ((index, element) in stockTopGainersList.withIndex()) {
-								replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+							if (!cache.get("topList").isNullOrBlank()) {
+								replyMsg = cache.get("topList");
+								LOG.debug("Get toplist from cache")
+							} else {
+								replyMsg = "🔵 KLSE Top Gainers\n\n"
+								val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
+								for ((index, element) in stockTopGainersList.withIndex()) {
+									replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+								}
+								cache.put("topList", replyMsg)
 							}
 						}
 						"/losers" -> {
-							replyMsg = "🔴 KLSE Top Losers\n\n"
-							val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
-							for ((index, element) in stockTopLosersList.withIndex()) {
-								replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+							if (!cache.get("loserList").isNullOrBlank()) {
+								replyMsg = cache.get("loserList");
+								LOG.debug("Get loserlist from cache")
+							} else {
+								replyMsg = "🔴 KLSE Top Losers\n\n"
+								val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
+								for ((index, element) in stockTopLosersList.withIndex()) {
+									replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+								}
+								cache.put("loserList", replyMsg)
 							}
-
 						}
 						else -> {
 							replyMsg = getStockReply(value)
