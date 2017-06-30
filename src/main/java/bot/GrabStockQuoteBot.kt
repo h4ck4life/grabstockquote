@@ -5,7 +5,9 @@ import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.bind
 import com.github.salomonbrys.kodein.provider
 import com.mongodb.client.MongoDatabase
+import com.mongodb.client.model.Filters.eq
 import model.StockQuote
+import model.StockUser
 import org.ehcache.Cache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,6 +38,18 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			LOG.error("Mongodb error for ${stockQuote.ticker}: " + e.message)
 		}
 	}
+	
+	fun validateUserAndSave(stockUser: StockUser) {
+		try {
+			val isUserExist = mongoDatabase.getCollection("stockuser", StockUser::class.java).find(eq("userId", stockUser.userId)).first()
+			if(isUserExist == null) {
+				mongoDatabase.getCollection("stockuser", StockUser::class.java).insertOne(stockUser)
+				LOG.debug("Successfuly saved new user: ${stockUser.userName}")
+			}
+		} catch (e: Exception) {
+			LOG.error("Mongodb error for ${stockUser.userName}: " + e.message)
+		}
+	}
 
 	fun getUpDownSymbol(price: String): String {
 		if (price.indexOf("-") > -1) {
@@ -45,6 +59,9 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			return "↑"
 		}
 		if (price.equals("0.00")) {
+			return ""
+		}
+		if (price.equals("0.000")) {
 			return ""
 		}
 		if (price.equals("0.0000")) {
@@ -134,6 +151,8 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 					when (value) {
 						"/start" -> {
+							val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
+							validateUserAndSave(stockUser)
 							replyMsg = """
 					Hello! Good day buddy :-)
  
@@ -189,6 +208,7 @@ Example: digi maxis astro
 
 					// Call method to send the message
 					sendMessage(message)
+					
 				}
 			}
 		}

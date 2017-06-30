@@ -4,6 +4,7 @@ import bot.GrabStockQuoteBot
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import model.StockQuote
+import model.StockUser
 import org.bson.codecs.configuration.CodecRegistries.fromProviders
 import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
@@ -11,7 +12,6 @@ import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.CacheManagerBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
 import org.ehcache.config.units.EntryUnit
-import org.ehcache.config.units.MemoryUnit
 import org.ehcache.expiry.Duration
 import org.ehcache.expiry.Expirations
 import org.telegram.telegrambots.ApiContextInitializer
@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
 
 	// Mongodb config
 	val pojoCodecRegistry = fromRegistries(
-			fromProviders(PojoCodecProvider.builder().register(StockQuote::class.java).build()),
+			fromProviders(PojoCodecProvider.builder().register(StockQuote::class.java, StockUser::class.java).build()),
 			MongoClient.getDefaultCodecRegistry());
 
 	val connectionString = MongoClientURI("mongodb://" + System.getenv("DB_CONNECTION"));
