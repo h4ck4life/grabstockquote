@@ -38,17 +38,25 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			LOG.error("Mongodb error for ${stockQuote.ticker}: " + e.message)
 		}
 	}
-	
+
 	fun validateUserAndSave(stockUser: StockUser) {
 		try {
 			val isUserExist = mongoDatabase.getCollection("stockuser", StockUser::class.java).find(eq("userId", stockUser.userId)).first()
-			if(isUserExist == null) {
+			if (isUserExist == null) {
 				mongoDatabase.getCollection("stockuser", StockUser::class.java).insertOne(stockUser)
 				LOG.debug("Successfuly saved new user: ${stockUser.userName}")
 			}
 		} catch (e: Exception) {
 			LOG.error("Mongodb error for ${stockUser.userName}: " + e.message)
 		}
+	}
+
+	fun getAllUsers(): MutableList<StockUser> {
+		var stockUserList: MutableList<StockUser> = mutableListOf()
+		for (doc in mongoDatabase.getCollection("stockuser", StockUser::class.java).find()) {
+			stockUserList.add(doc)
+		}
+		return stockUserList;
 	}
 
 	fun getUpDownSymbol(price: String): String {
@@ -137,23 +145,41 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 		// We check if the update has a message and the message has text
 		if (update.hasMessage() && update.getMessage().hasText()) {
+
 			val responseMsg = update.message.getText()
 			val queryCmd = responseMsg.trim().split(" ")
-			if (queryCmd.size > 0) {
-				queryCmd.mapIndexed { idx, value ->
-					if (idx > 2) {
-						return;
-					}
-					val logReqObject = mapper.createObjectNode()
-					logReqObject.put("chatId", update.updateId)
-					logReqObject.put("inputMsg", value)
-					LOG.debug(logReqObject.toString())
 
-					when (value) {
-						"/start" -> {
-							val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
-							validateUserAndSave(stockUser)
-							replyMsg = """
+			if (queryCmd.size > 0) {
+				val radioCommand = System.getenv("RADIO_MESSAGE");
+
+				if (queryCmd[0] == radioCommand) {
+					val broadcastMessage = responseMsg.trim().split("${radioCommand} ")[1]
+
+					val stockUsersList = getAllUsers();
+					if (stockUsersList.size > 0) {
+						for (user in stockUsersList) {
+							val message = SendMessage()
+									.setChatId(user.userId.toLong())
+									.setText(broadcastMessage);
+							sendMessage(message)
+						}
+					}
+
+				} else {
+					queryCmd.mapIndexed { idx, value ->
+						if (idx > 2) {
+							return;
+						}
+						val logReqObject = mapper.createObjectNode()
+						logReqObject.put("chatId", update.updateId)
+						logReqObject.put("inputMsg", value)
+						LOG.debug(logReqObject.toString())
+
+						when (value) {
+							"/start" -> {
+								val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
+								validateUserAndSave(stockUser)
+								replyMsg = """
 					Hello! Good day buddy :-)
  
 Type in KLSE symbol name to get the latest stock price information,
@@ -164,51 +190,52 @@ Get multiple results (max 3),
  
 Example: digi maxis astro 
  					"""
-						}
-						"/top" -> {
-							if (!cache.get("topList").isNullOrBlank()) {
-								replyMsg = cache.get("topList");
-								LOG.debug("Get toplist from cache")
-							} else {
-								replyMsg = "🔵 KLSE Top Gainers\n\n"
-								val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
-								for ((index, element) in stockTopGainersList.withIndex()) {
-									replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+							}
+							"/top" -> {
+								if (!cache.get("topList").isNullOrBlank()) {
+									replyMsg = cache.get("topList");
+									LOG.debug("Get toplist from cache")
+								} else {
+									replyMsg = "🔵 KLSE Top Gainers\n\n"
+									val stockTopGainersList: List<StockQuote> = stockQuoteService.getTopGainersList()
+									for ((index, element) in stockTopGainersList.withIndex()) {
+										replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+									}
+									cache.put("topList", replyMsg)
 								}
-								cache.put("topList", replyMsg)
+							}
+							"/losers" -> {
+								if (!cache.get("loserList").isNullOrBlank()) {
+									replyMsg = cache.get("loserList");
+									LOG.debug("Get loserlist from cache")
+								} else {
+									replyMsg = "🔴 KLSE Top Losers\n\n"
+									val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
+									for ((index, element) in stockTopLosersList.withIndex()) {
+										replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
+									}
+									cache.put("loserList", replyMsg)
+								}
+							}
+							else -> {
+								replyMsg = getStockReply(value)
 							}
 						}
-						"/losers" -> {
-							if (!cache.get("loserList").isNullOrBlank()) {
-								replyMsg = cache.get("loserList");
-								LOG.debug("Get loserlist from cache")
-							} else {
-								replyMsg = "🔴 KLSE Top Losers\n\n"
-								val stockTopLosersList: List<StockQuote> = stockQuoteService.getTopLosersList()
-								for ((index, element) in stockTopLosersList.withIndex()) {
-									replyMsg += "${index + 1}. ${element.ticker} ➞ MYR ${element.lastPrice} ➞ ${element.change} ${getUpDownSymbol(element.change)}\n\n"
-								}
-								cache.put("loserList", replyMsg)
-							}
-						}
-						else -> {
-							replyMsg = getStockReply(value)
-						}
+
+						val logRespObject = mapper.createObjectNode()
+						logRespObject.put("chatId", update.updateId)
+						logRespObject.put("replyMsg", replyMsg)
+						LOG.debug(logRespObject.toString())
+
+						// Create a SendMessage object with mandatory fields
+						val message = SendMessage()
+								.setChatId(update.message.getChatId())
+								.setText(replyMsg);
+
+						// Call method to send the message
+						sendMessage(message)
+
 					}
-
-					val logRespObject = mapper.createObjectNode()
-					logRespObject.put("chatId", update.updateId)
-					logRespObject.put("replyMsg", replyMsg)
-					LOG.debug(logRespObject.toString())
-
-					// Create a SendMessage object with mandatory fields
-					val message = SendMessage()
-							.setChatId(update.message.getChatId())
-							.setText(replyMsg);
-
-					// Call method to send the message
-					sendMessage(message)
-					
 				}
 			}
 		}

@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
 			.withCache("stockCache",
 					CacheConfigurationBuilder.newCacheConfigurationBuilder(String::class.javaObjectType, String::class.java,
 							ResourcePoolsBuilder.newResourcePoolsBuilder()
-									.heap(1, EntryUnit.ENTRIES)
+									.heap(2, EntryUnit.ENTRIES)
 					)
 							.withExpiry(Expirations.timeToLiveExpiration(Duration.of(1, TimeUnit.HOURS)))
 			).build(true)
