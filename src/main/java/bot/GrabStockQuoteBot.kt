@@ -234,6 +234,10 @@ Example: digi maxis astro
 
 						// Call method to send the message
 						sendMessage(message)
+						
+						// Temporarily in place to capture existing users into db: TO BE REMOVED!
+						val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
+						validateUserAndSave(stockUser)
 
 					}
 				}
