@@ -2,6 +2,7 @@ package model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.util.Date
 
 /**
 
@@ -74,5 +75,7 @@ data class StockQuote(
 		val ccol: String = "",
 
 		@JsonProperty("pcls_fix")
-		val previousClosePrice: String = ""
+		val previousClosePrice: String = "",
+
+		val requestedDate: Date = Date()
 );
