@@ -2,7 +2,9 @@ package model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 /**
 
@@ -77,5 +79,5 @@ data class StockQuote(
 		@JsonProperty("pcls_fix")
 		val previousClosePrice: String = "",
 
-		val requestedDate: Date = Date()
+		val requestedDate: String =  Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur")).getTime().toString()
 );
