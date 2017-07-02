@@ -116,15 +116,21 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			inlineResponseMsg = update.inlineQuery
 
 			if (!inlineResponseMsg.query.equals("")) {
+				
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
 				val inputMessageContent = InputTextMessageContent();
 
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
+					
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
 					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase()) else "")
+					
+					saveStockIntoDb(stockQuote)
+					
 				} else {
+					
 					inlineQueryResult.setTitle("No result")
 					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
 					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
@@ -137,8 +143,6 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 				answerInlineQuery.setResults(inlineQueryResult)
 				answerInlineQuery.setInlineQueryId(inlineResponseMsg.id)
 				answerInlineQuery(answerInlineQuery)
-
-				saveStockIntoDb(stockQuote)
 
 			}
 		}
