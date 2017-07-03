@@ -181,7 +181,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 						when (value) {
 							"/start" -> {
-								val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
+								val stockUser = StockUser(userId = update.message.from.id, userName = if (update.message.from.userName == null) "" else update.message.from.userName)
 								validateUserAndSave(stockUser)
 								replyMsg = """
 					Hello! Good day buddy :-)
@@ -238,10 +238,6 @@ Example: digi maxis astro
 
 						// Call method to send the message
 						sendMessage(message)
-						
-						// Temporarily in place to capture existing users into db: TO BE REMOVED!
-						val stockUser = StockUser(userId = update.message.from.id, userName = update.message.from.userName)
-						validateUserAndSave(stockUser)
 
 					}
 				}
