@@ -1,5 +1,6 @@
 package bot
 
+import StockFeedback
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.salomonbrys.kodein.Kodein
 import com.github.salomonbrys.kodein.bind
@@ -116,21 +117,21 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			inlineResponseMsg = update.inlineQuery
 
 			if (!inlineResponseMsg.query.equals("")) {
-				
+
 				var inlineQueryResult = InlineQueryResultArticle()
 				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
 				val inputMessageContent = InputTextMessageContent();
 
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
-					
+
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
 					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase()) else "")
-					
+
 					saveStockIntoDb(stockQuote)
-					
+
 				} else {
-					
+
 					inlineQueryResult.setTitle("No result")
 					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
 					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
@@ -168,7 +169,20 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 							sendMessage(message)
 						}
 					}
+				} else if (queryCmd[0] == "/feedback") {
+					try {
+						val feedbackMsg = responseMsg.trim().split("/feedback ")
+						val stockFeedback = StockFeedback(update.message.from.id, if (update.message.from.userName == null) "" else update.message.from.userName, feedbackMsg[1])
+						mongoDatabase.getCollection("stockfeedback", StockFeedback::class.java).insertOne(stockFeedback)
 
+						val message = SendMessage()
+								.setChatId(update.message.getChatId())
+								.setText("Your feedback successfully submitted. We'll surely go through it all. Thanks for the support :-)");
+						sendMessage(message)
+
+					} catch(e: Exception) {
+						LOG.error("Error saving feedback: ${e.message}")
+					}
 				} else {
 					queryCmd.mapIndexed { idx, value ->
 						if (idx > 2) {
@@ -192,7 +206,11 @@ Example: digi
  
 Get multiple results (max 3),
  
-Example: digi maxis astro 
+Example: digi maxis astro
+  
+Please feedback to us your experience with this bot,
+
+/feedback type your feedback 
  					"""
 							}
 							"/top" -> {
