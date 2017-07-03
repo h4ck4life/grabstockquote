@@ -260,6 +260,9 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 						// Call method to send the message
 						sendMessage(message)
 
+						val stockUser = StockUser(userId = update.message.from.id, userName = if (update.message.from.userName == null) "" else update.message.from.userName)
+						validateUserAndSave(stockUser)
+
 					}
 				}
 			}
