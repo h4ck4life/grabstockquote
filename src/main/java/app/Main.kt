@@ -1,5 +1,6 @@
 package app
 
+import StockFeedback
 import bot.GrabStockQuoteBot
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
@@ -22,7 +23,7 @@ fun main(args: Array<String>) {
 
 	// Mongodb config
 	val pojoCodecRegistry = fromRegistries(
-			fromProviders(PojoCodecProvider.builder().register(StockQuote::class.java, StockUser::class.java).build()),
+			fromProviders(PojoCodecProvider.builder().register(StockQuote::class.java, StockUser::class.java, StockFeedback::class.java).build()),
 			MongoClient.getDefaultCodecRegistry());
 
 	val connectionString = MongoClientURI("mongodb://" + System.getenv("DB_CONNECTION"));
