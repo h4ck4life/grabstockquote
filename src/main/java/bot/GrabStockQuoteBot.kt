@@ -203,15 +203,15 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 								replyMsg = """
 					Hello! Good day buddy :-)
  
-Type in KLSE symbol name to get the latest stock price information,
+👉 Type in KLSE symbol name to get the latest stock price information,
  
 Example: digi
  
-Get multiple results (max 3),
+👉 Get multiple results (max 3),
  
 Example: digi maxis astro
   
-Please feedback to us your experience with this bot,
+👉 Please feedback to us your experience with this bot,
 
 /feedback type your feedback 
  					"""
