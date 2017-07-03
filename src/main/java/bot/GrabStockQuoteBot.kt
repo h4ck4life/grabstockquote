@@ -193,7 +193,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 					val message = SendMessage()
 							.setChatId(update.message.getChatId())
-							.setText("Total\nUsers: ${userCount}\nQuotes: ${quoteCount}\nFeedbacks: ${feedbackCount}");
+							.setText("⚡ Total\n\n📢 Users: ${userCount}\n📢 Quotes: ${quoteCount}\n📢 Feedbacks: ${feedbackCount}");
 					sendMessage(message)
 
 				} else {
@@ -211,7 +211,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 								val stockUser = StockUser(userId = update.message.from.id, userName = if (update.message.from.userName == null) "" else update.message.from.userName)
 								validateUserAndSave(stockUser)
 								replyMsg = """
-					📰 Hello! Good day buddy :-)
+					📈 Hello! Good day buddy :-)
  
 👉 Type in KLSE symbol name to get the latest stock price information,
  
