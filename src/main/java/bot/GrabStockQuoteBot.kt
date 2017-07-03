@@ -99,7 +99,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			replyMsg += "\n\n🔸 Prev close ➞ MYR " + stockQuote.previousClosePrice
 			replyMsg += "\n\n🔸 Change ➞ MYR " + stockQuote.change + " " + getUpDownSymbol(stockQuote.change)
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
-			replyMsg += "\n\n" + stockQuote.lastTradeDateTimeLong
+			replyMsg += "\n\n🕘 " + stockQuote.lastTradeDateTimeLong
 
 			saveStockIntoDb(stockQuote)
 		}
@@ -201,19 +201,19 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 								val stockUser = StockUser(userId = update.message.from.id, userName = if (update.message.from.userName == null) "" else update.message.from.userName)
 								validateUserAndSave(stockUser)
 								replyMsg = """
-					Hello! Good day buddy :-)
+					📰 Hello! Good day buddy :-)
  
 👉 Type in KLSE symbol name to get the latest stock price information,
  
-Example: digi
+🔹 Example: digi
  
 👉 Get multiple results (max 3),
  
-Example: digi maxis astro
+🔹 Example: digi maxis astro
   
 👉 Please feedback to us your experience with this bot,
 
-/feedback type your feedback 
+🔹 /feedback type your feedback 
  					"""
 							}
 							"/top" -> {
