@@ -193,7 +193,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 					val message = SendMessage()
 							.setChatId(update.message.getChatId())
-							.setText("📝 Total\n▶ Users: ${userCount}\n▶ Quotes: ${quoteCount}\n▶ Feedbacks: ${feedbackCount}");
+							.setText("📝 Total\n\n⚡ Users: ${userCount}\n⚡ Quotes: ${quoteCount}\n⚡ Feedbacks: ${feedbackCount}");
 					sendMessage(message)
 
 				} else {
