@@ -172,13 +172,16 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 				} else if (queryCmd[0] == "/feedback") {
 					try {
 						val feedbackMsg = responseMsg.trim().split("/feedback ")
-						val stockFeedback = StockFeedback(update.message.from.id, if (update.message.from.userName == null) "" else update.message.from.userName, feedbackMsg[1])
-						mongoDatabase.getCollection("stockfeedback", StockFeedback::class.java).insertOne(stockFeedback)
 
-						val message = SendMessage()
-								.setChatId(update.message.getChatId())
-								.setText("Your feedback successfully submitted. We'll surely go through it all. Thanks for the support :-)");
-						sendMessage(message)
+						if (feedbackMsg[1].length > 0) {
+							val stockFeedback = StockFeedback(update.message.from.id, if (update.message.from.userName == null) "" else update.message.from.userName, feedbackMsg[1])
+							mongoDatabase.getCollection("stockfeedback", StockFeedback::class.java).insertOne(stockFeedback)
+
+							val message = SendMessage()
+									.setChatId(update.message.getChatId())
+									.setText("Your feedback successfully submitted. We'll surely go through it all. Thanks for the support :-)");
+							sendMessage(message)
+						}
 
 					} catch(e: Exception) {
 						LOG.error("Error saving feedback: ${e.message}")
