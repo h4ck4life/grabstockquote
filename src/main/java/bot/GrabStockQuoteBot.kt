@@ -179,7 +179,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 							val message = SendMessage()
 									.setChatId(update.message.getChatId())
-									.setText("Your feedback successfully submitted. We'll surely go through it all. Thanks for the support :-)");
+									.setText("Your feedback successfully submitted. Thanks for the support.");
 							sendMessage(message)
 						}
 
