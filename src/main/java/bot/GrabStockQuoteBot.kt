@@ -186,6 +186,16 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 					} catch(e: Exception) {
 						LOG.error("Error saving feedback: ${e.message}")
 					}
+				} else if (queryCmd[0] == "/summary") {
+					val userCount = mongoDatabase.getCollection("stockuser", StockUser::class.java).count();
+					val quoteCount = mongoDatabase.getCollection("stockquote", StockQuote::class.java).count();
+					val feedbackCount = mongoDatabase.getCollection("stockfeedback", StockFeedback::class.java).count();
+
+					val message = SendMessage()
+							.setChatId(update.message.getChatId())
+							.setText("Total\nUsers: ${userCount}\nQuotes: ${quoteCount}\nFeedbacks: ${feedbackCount}");
+					sendMessage(message)
+
 				} else {
 					queryCmd.mapIndexed { idx, value ->
 						if (idx > 2) {
