@@ -19,6 +19,7 @@ import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery
 import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent
 import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.exceptions.TelegramApiRequestException
 import service.StockQuoteService
 import service.impl.StockQuoteServiceImpl
 
@@ -167,10 +168,19 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 					val stockUsersList = getAllUsers();
 					if (stockUsersList.size > 0) {
 						for (user in stockUsersList) {
-							val message = SendMessage()
-									.setChatId(user.userId.toLong())
-									.setText(broadcastMessage);
-							sendMessage(message)
+							try {
+								val message = SendMessage()
+										.setChatId(user.userId.toLong())
+										.setText(broadcastMessage);
+								sendMessage(message)
+							} catch(e: TelegramApiRequestException) {
+								when (e.errorCode) {
+								// Forbidden: bot was blocked by the user
+									403 -> {
+										mongoDatabase.getCollection("stockuser", StockUser::class.java).findOneAndDelete(eq("userId", user.userId))
+									}
+								}
+							}
 						}
 					}
 				} else if (queryCmd[0] == "/feedback") {
@@ -191,15 +201,15 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 						LOG.error("Error saving feedback: ${e.message}")
 					}
 				} else if (queryCmd[0] == "/summary") {
-					
+
 					var replyMsg = ""
-					
+
 					val userCount = mongoDatabase.getCollection("stockuser", StockUser::class.java).count();
 					val quoteCount = mongoDatabase.getCollection("stockquote", StockQuote::class.java).count();
 					val feedbackCount = mongoDatabase.getCollection("stockfeedback", StockFeedback::class.java).count();
 
 					replyMsg += "📝 Total\n\n⚡ Users: ${userCount}\n⚡ Quotes: ${quoteCount}\n⚡ Feedbacks: ${feedbackCount}"
-					
+
 					val message = SendMessage()
 							.setChatId(update.message.getChatId())
 							.setText(replyMsg);
