@@ -79,7 +79,7 @@ data class StockQuote(
 		@JsonProperty("pcls_fix")
 		val previousClosePrice: String = "",
 
-		val requestedDate: String =  Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur")).getTime().toString(),
+		val requestedDate: Date =  Calendar.getInstance(TimeZone.getTimeZone("Asia/Kuala_Lumpur")).getTime(),
 
 		var requestedById: String = "",
 		
