@@ -79,10 +79,10 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 		return "↑"
 	}
 
-	fun getStockReply(ticker: String): String {
+	fun getStockReply(ticker: String, update: Update): String {
 		var replyMsg: String
 		val notFoundMsg: String = "'${ticker.toUpperCase()}' is invalid KLSE stock symbol."
-		val stockQuote: StockQuote;
+		var stockQuote: StockQuote;
 		val stockQuoteService = kodein.provider<StockQuoteService>().invoke()
 
 		stockQuote = stockQuoteService.getStockQuote(ticker);
@@ -101,6 +101,8 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			replyMsg += "\n\n🔸 Percentage ➞ " + stockQuote.changePercentage + "% " + getUpDownSymbol(stockQuote.changePercentage)
 			replyMsg += "\n\n🕘 " + stockQuote.lastTradeDateTimeLong
 
+			stockQuote.requestedById = update.message.from.id.toString()
+			stockQuote.requestedByName = if (update.message.from.userName == null) "" else update.message.from.userName
 			saveStockIntoDb(stockQuote)
 		}
 		return replyMsg
@@ -119,15 +121,17 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			if (!inlineResponseMsg.query.equals("")) {
 
 				var inlineQueryResult = InlineQueryResultArticle()
-				val stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
+				var stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
 				val inputMessageContent = InputTextMessageContent();
 
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
 
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
-					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase()) else "")
+					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase(), update) else "")
 
+					stockQuote.requestedById = update.message.from.id.toString()
+					stockQuote.requestedByName = if (update.message.from.userName == null) "" else update.message.from.userName
 					saveStockIntoDb(stockQuote)
 
 				} else {
@@ -250,7 +254,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 								}
 							}
 							else -> {
-								replyMsg = getStockReply(value)
+								replyMsg = getStockReply(value, update)
 							}
 						}
 
