@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
 			fromProviders(PojoCodecProvider.builder().register(StockQuote::class.java, StockUser::class.java, StockFeedback::class.java).build()),
 			MongoClient.getDefaultCodecRegistry());
 
-	val connectionString = MongoClientURI("mongodb://" + System.getenv("DB_CONNECTION"));
+	val connectionString = MongoClientURI("mongodb://" + System.getenv("DB_CONNECTION"))
 	val mongoClient = MongoClient(connectionString);
 	val database = mongoClient.getDatabase("grabstockquote").withCodecRegistry(pojoCodecRegistry);
 

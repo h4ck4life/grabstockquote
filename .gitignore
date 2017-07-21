@@ -2,3 +2,7 @@
 /.classpath
 /.project
 *.log
+/grabstockquote.iml
+/logs
+/.idea
+/.settings

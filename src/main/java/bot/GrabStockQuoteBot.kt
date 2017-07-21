@@ -122,11 +122,10 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 			if (!inlineResponseMsg.query.equals("")) {
 
 				var inlineQueryResult = InlineQueryResultArticle()
-				var stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase());
+				var stockQuote = stockQuoteService.getStockQuote(inlineResponseMsg.query.toUpperCase())
 				val inputMessageContent = InputTextMessageContent();
 
 				if (stockQuote.lastPrice != "" || stockQuote.ticker != "") {
-
 					inlineQueryResult.setTitle("KLSE: ${inlineResponseMsg.query.toUpperCase()}")
 					inlineQueryResult.setDescription("Last price: MYR ${stockQuote.lastPrice} ➞ Tap here to view more.")
 					inputMessageContent.setMessageText(if (inlineResponseMsg.query != "") getStockReply(inlineResponseMsg.query.toUpperCase(), update) else "")
@@ -134,9 +133,7 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 					stockQuote.requestedById = update.message.from.id.toString()
 					stockQuote.requestedByName = if (update.message.from.userName == null) "" else update.message.from.userName
 					saveStockIntoDb(stockQuote)
-
 				} else {
-
 					inlineQueryResult.setTitle("No result")
 					inlineQueryResult.setDescription("Invalid KLSE stock symbol. Please retry.")
 					inputMessageContent.setMessageText("No result for ${inlineResponseMsg.query.toUpperCase()}")
@@ -155,7 +152,6 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 
 		// We check if the update has a message and the message has text
 		if (update.hasMessage() && update.getMessage().hasText()) {
-
 			val responseMsg = update.message.getText()
 			val queryCmd = responseMsg.trim().split(" ")
 
@@ -201,7 +197,6 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 						LOG.error("Error saving feedback: ${e.message}")
 					}
 				} else if (queryCmd[0] == "/summary") {
-
 					var replyMsg = ""
 
 					val userCount = mongoDatabase.getCollection("stockuser", StockUser::class.java).count();
@@ -214,7 +209,6 @@ class GrabStockQuoteBot(val mongoDatabase: MongoDatabase, val cache: Cache<Strin
 							.setChatId(update.message.getChatId())
 							.setText(replyMsg);
 					sendMessage(message)
-
 				} else {
 					queryCmd.mapIndexed { idx, value ->
 						if (idx > 2) {
